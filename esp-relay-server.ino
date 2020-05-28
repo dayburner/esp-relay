@@ -1,14 +1,9 @@
-/*********
-  Rui Santos
-  Complete project details at http://randomnerdtutorials.com  
-*********/
-
 // Load Wi-Fi library
 #include <ESP8266WiFi.h>
 
 // Replace with your network credentials
-const char* ssid     = "REPLACE_WITH_YOUR_SSID";
-const char* password = "REPLACE_WITH_YOUR_PASSWORD";
+const char* ssid     = "MyNet";
+const char* password = "Alprozalam";
 
 // Set web server port number to 80
 WiFiServer server(80);
@@ -17,10 +12,11 @@ WiFiServer server(80);
 String header;
 
 // Auxiliar variables to store the current output state
-String output5State = "off";
+String output0State = "off";
 
 // Assign output variables to GPIO pins
-const int output5 = 5;
+
+const int output0 = 0;
 
 
 // Current time
@@ -32,20 +28,21 @@ const long timeoutTime = 2000;
 
 void setup() {
   Serial.begin(115200);
+  Serial.print("Speaking Serial");
   // Initialize the output variables as outputs
-  pinMode(output5, OUTPUT);
+  pinMode(output0, OUTPUT);
 
   // Set outputs to LOW
-  digitalWrite(output5, LOW);
-
+  digitalWrite(output0, LOW);
 
   // Connect to Wi-Fi network with SSID and password
   Serial.print("Connecting to ");
   Serial.println(ssid);
+  Serial.println("/n");
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.print(".");
+    Serial.println(".");
   }
   // Print local IP address and start web server
   Serial.println("");
@@ -80,17 +77,6 @@ void loop(){
             client.println("Connection: close");
             client.println();
             
-            // turns the GPIOs on and off
-            if (header.indexOf("GET /open") >= 0) {
-              Serial.println("GPIO 5 on");
-              output5State = "on";
-              digitalWrite(output5, HIGH);
-              Serial.println("GPIO holding high for 5 seconds");
-              wait(5);
-              Serial.println("GPIO 5 off");
-              output5State = "off";
-              digitalWrite(output5, LOW);
-            }
             
             // Display the HTML web page
             client.println("<!DOCTYPE html><html>");
@@ -104,19 +90,26 @@ void loop(){
             client.println(".button2 {background-color: #77878A;}</style></head>");
             
             // Web Page Heading
-            client.println("<body><h1>ESP8266 Relay Server</h1>");
+            client.println("<body><h1>Door Controller</h1>");
             
-            // Display current state, and ON/OFF buttons for GPIO 5  
-            client.println("<p>GPIO 5 - State " + output5State + "</p>");
-            // If the output5State is off, it displays the ON button       
-            if (output5State=="off") {
-              client.println("<p><a href=\"/open\"><button class=\"button\">OPEN SESAME!</button></a></p>");
-            } 
-               
+            // Display button for GPIO 0     
+            client.println("<p><a href=\"/open\"><button class=\"button\">OPEN SESAME!</button></a></p>");   
             client.println("</body></html>");
             
             // The HTTP response ends with another blank line
             client.println();
+            // turns the GPIOs on and off
+            if (header.indexOf("GET /open") >= 0) {
+              Serial.println("GPIO 0 on");
+              output0State = "on";
+              digitalWrite(output0, HIGH);
+              Serial.println("GPIO holding high for 5 seconds");
+              delay(5000);
+              Serial.println("GPIO 0 off");
+              output0State = "off";
+              digitalWrite(output0, LOW);
+            }
+            
             // Break out of the while loop
             break;
           } else { // if you got a newline, then clear currentLine
